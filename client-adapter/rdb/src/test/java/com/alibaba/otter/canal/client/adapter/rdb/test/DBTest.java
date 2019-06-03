@@ -7,10 +7,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.druid.pool.DruidDataSource;
-
+@Ignore
 public class DBTest {
 
     @Test
@@ -42,7 +43,7 @@ public class DBTest {
             .prepareStatement("insert into user (id,name,role_id,c_time,test1,test2) values (?,?,?,?,?,?)");
 
         java.util.Date now = new java.util.Date();
-        for (int i = 1; i <= 100000; i++) {
+        for (int i = 1; i <= 10000; i++) {
             pstmt.clearParameters();
             pstmt.setLong(1, (long) i);
             pstmt.setString(2, "test_" + i);
@@ -92,17 +93,16 @@ public class DBTest {
 
     private String clob2Str(Clob clob) {
         String content = "";
-        try {
-            Reader is = clob.getCharacterStream();
-            BufferedReader buff = new BufferedReader(is);
+        try (Reader is = clob.getCharacterStream(); BufferedReader buff = new BufferedReader(is)) {
             String line = buff.readLine();
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             while (line != null) {
                 sb.append(line);
                 line = buff.readLine();
             }
             content = sb.toString();
         } catch (Exception e) {
+            e.printStackTrace();
         }
         return content;
     }

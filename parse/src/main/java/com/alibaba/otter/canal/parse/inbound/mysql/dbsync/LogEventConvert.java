@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
-import com.alibaba.otter.canal.parse.exception.TableIdNotFoundException;
+import com.taobao.tddl.dbsync.binlog.exception.TableIdNotFoundException;
 import com.alibaba.otter.canal.parse.inbound.BinlogParser;
 import com.alibaba.otter.canal.parse.inbound.TableMeta;
 import com.alibaba.otter.canal.parse.inbound.TableMeta.FieldMeta;
@@ -621,9 +621,10 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                                                       + "," + columnInfo.length + " vs " + tableMeta.getFields().size());
                     }
                 }
-            } else {
-                logger.warn("[" + event.getTable().getDbName() + "." + event.getTable().getTableName()
-                            + "] is no primary key , skip alibaba_rds_row_id column");
+                // } else {
+                // logger.warn("[" + event.getTable().getDbName() + "." +
+                // event.getTable().getTableName()
+                // + "] is no primary key , skip alibaba_rds_row_id column");
             }
         }
 
@@ -634,16 +635,33 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 continue;
             }
 
+            if (existRDSNoPrimaryKey && i == columnCnt - 1 && info.type == LogEvent.MYSQL_TYPE_LONGLONG) {
+                // 不解析最后一列
+                String rdsRowIdColumnName = "#alibaba_rds_row_id#";
+                buffer.nextValue(rdsRowIdColumnName, i, info.type, info.meta, false);
+                Column.Builder columnBuilder = Column.newBuilder();
+                columnBuilder.setName(rdsRowIdColumnName);
+                columnBuilder.setIsKey(true);
+                columnBuilder.setMysqlType("bigint");
+                columnBuilder.setIndex(i);
+                columnBuilder.setIsNull(false);
+                Serializable value = buffer.getValue();
+                columnBuilder.setValue(value.toString());
+                columnBuilder.setSqlType(Types.BIGINT);
+                columnBuilder.setUpdated(false);
+
+                if (isAfter) {
+                    rowDataBuilder.addAfterColumns(columnBuilder.build());
+                } else {
+                    rowDataBuilder.addBeforeColumns(columnBuilder.build());
+                }
+                continue;
+            }
+
             FieldMeta fieldMeta = null;
             if (tableMeta != null && !tableError) {
                 // 处理file meta
                 fieldMeta = tableMeta.getFields().get(i);
-            }
-
-            if (existRDSNoPrimaryKey && i == columnCnt - 1 && info.type == LogEvent.MYSQL_TYPE_LONGLONG) {
-                // 不解析最后一列
-                buffer.nextValue(fieldMeta.getColumnName(), i, info.type, info.meta, false);
-                continue;
             }
 
             if (fieldMeta != null && existOptionalMetaData && tableMetaCache.isOnTSDB()) {
@@ -690,7 +708,7 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
                 }
             }
 
-            buffer.nextValue(fieldMeta.getColumnName(), i, info.type, info.meta, isBinary);
+            buffer.nextValue(columnBuilder.getName(), i, info.type, info.meta, isBinary);
             int javaType = buffer.getJavaType();
             if (buffer.isNull()) {
                 columnBuilder.setIsNull(true);

@@ -1,38 +1,44 @@
 package com.alibaba.otter.canal.common;
 
-import java.util.Map;
+import java.util.Properties;
 
 /**
- * kafka 配置项
+ * MQ 配置项
  *
  * @author machengyuan 2018-6-11 下午05:30:49
  * @version 1.0.0
  */
 public class MQProperties {
 
-    private String  servers                = "127.0.0.1:6667";
-    private int     retries                = 0;
-    private int     batchSize              = 16384;
-    private int     lingerMs               = 1;
-    private int     maxRequestSize         = 1048576;
-    private long    bufferMemory           = 33554432L;
-    private boolean filterTransactionEntry = true;
-    private String  producerGroup          = "Canal-Producer";
-    private int     canalBatchSize         = 50;
-    private Long    canalGetTimeout        = 100L;
-    private boolean flatMessage            = true;
-    private String  compressionType        = "none";
-    private String  acks                   = "all";
-    private String  aliyunAccessKey        = "";
-    private String  aliyunSecretKey        = "";
-
+    private String     servers                = "127.0.0.1:6667";
+    private int        retries                = 0;
+    private int        batchSize              = 16384;
+    private int        lingerMs               = 1;
+    private int        maxRequestSize         = 1048576;
+    private long       bufferMemory           = 33554432L;
+    private boolean    filterTransactionEntry = true;
+    private String     producerGroup          = "Canal-Producer";
+    private int        canalBatchSize         = 50;
+    private Long       canalGetTimeout        = 100L;
+    private boolean    flatMessage            = true;
+    private String     compressionType        = "none";
+    private String     acks                   = "all";
+    private String     aliyunAccessKey        = "";
+    private String     aliyunSecretKey        = "";
+    private boolean    transaction            = false;           // 是否开启事务
+    private Properties properties             = new Properties();
+    private boolean    enableMessageTrace     = false;
+    private String     accessChannel          = null;
+    private String     customizedTraceTopic   = null;
+    private String     namespace              = "";
     public static class CanalDestination {
 
-        private String              canalDestination;
-        private String              topic;
-        private Integer             partition;
-        private Integer             partitionsNum;
-        private Map<String, String> partitionHash;
+        private String  canalDestination;
+        private String  topic;
+        private Integer partition;
+        private Integer partitionsNum;
+        private String  partitionHash;
+        private String  dynamicTopic;
 
         public String getCanalDestination() {
             return canalDestination;
@@ -66,12 +72,20 @@ public class MQProperties {
             this.partitionsNum = partitionsNum;
         }
 
-        public Map<String, String> getPartitionHash() {
+        public String getPartitionHash() {
             return partitionHash;
         }
 
-        public void setPartitionHash(Map<String, String> partitionHash) {
+        public void setPartitionHash(String partitionHash) {
             this.partitionHash = partitionHash;
+        }
+
+        public String getDynamicTopic() {
+            return dynamicTopic;
+        }
+
+        public void setDynamicTopic(String dynamicTopic) {
+            this.dynamicTopic = dynamicTopic;
         }
     }
 
@@ -186,11 +200,86 @@ public class MQProperties {
     public void setAliyunSecretKey(String aliyunSecretKey) {
         this.aliyunSecretKey = aliyunSecretKey;
     }
+
     public int getMaxRequestSize() {
         return maxRequestSize;
     }
 
     public void setMaxRequestSize(int maxRequestSize) {
         this.maxRequestSize = maxRequestSize;
+    }
+
+    public boolean getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(boolean transaction) {
+        this.transaction = transaction;
+    }
+
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
+
+    public boolean isEnableMessageTrace() {
+        return enableMessageTrace;
+    }
+
+    public void setEnableMessageTrace(boolean enableMessageTrace) {
+        this.enableMessageTrace = enableMessageTrace;
+    }
+
+    public String getAccessChannel() {
+        return accessChannel;
+    }
+
+    public void setAccessChannel(String accessChannel) {
+        this.accessChannel = accessChannel;
+    }
+
+    public String getCustomizedTraceTopic() {
+        return customizedTraceTopic;
+    }
+
+    public void setCustomizedTraceTopic(String customizedTraceTopic) {
+        this.customizedTraceTopic = customizedTraceTopic;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
+    @Override public String toString() {
+        return "MQProperties{" +
+            "servers='" + servers + '\'' +
+            ", retries=" + retries +
+            ", batchSize=" + batchSize +
+            ", lingerMs=" + lingerMs +
+            ", maxRequestSize=" + maxRequestSize +
+            ", bufferMemory=" + bufferMemory +
+            ", filterTransactionEntry=" + filterTransactionEntry +
+            ", producerGroup='" + producerGroup + '\'' +
+            ", canalBatchSize=" + canalBatchSize +
+            ", canalGetTimeout=" + canalGetTimeout +
+            ", flatMessage=" + flatMessage +
+            ", compressionType='" + compressionType + '\'' +
+            ", acks='" + acks + '\'' +
+            ", aliyunAccessKey='" + aliyunAccessKey + '\'' +
+            ", aliyunSecretKey='" + aliyunSecretKey + '\'' +
+            ", transaction=" + transaction +
+            ", properties=" + properties +
+            ", enableMessageTrace=" + enableMessageTrace +
+            ", accessChannel='" + accessChannel + '\'' +
+            ", customizedTraceTopic='" + customizedTraceTopic + '\'' +
+            ", namespace='" + namespace + '\'' +
+            '}';
     }
 }

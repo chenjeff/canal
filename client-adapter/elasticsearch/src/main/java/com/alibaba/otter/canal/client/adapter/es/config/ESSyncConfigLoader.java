@@ -2,11 +2,12 @@ package com.alibaba.otter.canal.client.adapter.es.config;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
+import com.alibaba.otter.canal.client.adapter.config.YmlConfigBinder;
 import com.alibaba.otter.canal.client.adapter.support.MappingConfigsLoader;
 
 /**
@@ -19,14 +20,17 @@ public class ESSyncConfigLoader {
 
     private static Logger logger = LoggerFactory.getLogger(ESSyncConfigLoader.class);
 
-    public static synchronized Map<String, ESSyncConfig> load() {
+    public static synchronized Map<String, ESSyncConfig> load(Properties envProperties) {
         logger.info("## Start loading es mapping config ... ");
 
         Map<String, ESSyncConfig> esSyncConfig = new LinkedHashMap<>();
 
         Map<String, String> configContentMap = MappingConfigsLoader.loadConfigs("es");
         configContentMap.forEach((fileName, content) -> {
-            ESSyncConfig config = new Yaml().loadAs(content, ESSyncConfig.class);
+            ESSyncConfig config = YmlConfigBinder.bindYmlToObj(null, content, ESSyncConfig.class, null, envProperties);
+            if (config == null) {
+                return;
+            }
             try {
                 config.validate();
             } catch (Exception e) {
